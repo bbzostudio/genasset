@@ -45,35 +45,29 @@ body { font-family: var(--font-sans); }
 </style>
 
 <div class="dash">
-<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Fund tracker dashboard showing Encina Fund, GenAsset U.S. Income Fund, and Tagua Fund</h2>
-
-<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;">
-  <div>
-    <p style="font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px;">Fund tracker</p>
-    <p style="font-size: 13px; color: var(--color-text-secondary);">Geneva Asset Management</p>
+  <h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Fund tracker dashboard showing Encina Fund, GenAsset U.S. Income Fund, and Tagua Fund</h2>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;">
+    <div>
+      <p style="font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px;">Fund tracker</p>
+      <p style="font-size: 13px; color: var(--color-text-secondary);">Geneva Asset Management</p>
+    </div>
+    <div class="month-pills" id="monthPills"></div>
   </div>
-  <div class="month-pills" id="monthPills"></div>
-</div>
-
-<p class="section-title">Portfolio overview</p>
-<div class="overview-grid" id="overviewGrid"></div>
-
-<div class="fund-tabs" id="fundTabs"></div>
-
-<div id="fundDetail"></div>
+  <p class="section-title">Portfolio overview</p>
+  <div class="overview-grid" id="overviewGrid"></div>
+  <div class="fund-tabs" id="fundTabs"></div>
+  <div id="fundDetail"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 // ─── DATA ───────────────────────────────────────────────
 const TIMELINE = ['apr2026', 'may2026'];
-
 const META = {
   encina:   { id:'encina',   name:'Encina Fund',               ticker:'ENCINA',   color:'#1D9E75', navInitial:100,  inception:'2022-03-01', expenseRatio:'1.00%' },
   gusifund: { id:'gusifund', name:'GenAsset U.S. Income Fund', ticker:'GUSIFUND', color:'#378ADD', navInitial:100,  inception:'2026-02-25', expenseRatio:'0.50%', div:true },
   tagua:    { id:'tagua',    name:'Tagua Fund',                 ticker:'TAGUA',    color:'#7F77DD', navInitial:1000, inception:'2010-08-16', expenseRatio:'Equities 1.0625% / Others 0.3625%' }
 };
-
 const DB = {
   apr2026: {
     label: 'Abril 2026', short: "Abr '26",
@@ -137,7 +131,6 @@ const DB = {
       ]
     }
   },
-
   may2026: {
     label: 'Mayo 2026', short: "May '26",
     encina: {
@@ -297,18 +290,15 @@ function renderDetail() {
   const prev = getPrevData(activeFund);
   const showChg = prev !== null;
   const totalHoldingPct = f.holdings.reduce((s, h) => s + h.p, 0);
-
-  // Nav history across months up to current
+  
   const navHist = TIMELINE.slice(0, TIMELINE.indexOf(activeMonth) + 1).map(t => ({
     short: DB[t].short, label: DB[t].label,
     nav: DB[t][activeFund].nav, aum: DB[t][activeFund].aum
   }));
-
-  // Holdings change badge helper (needs prev holdings array)
+  
   const prevHoldings = prev ? prev.holdings : null;
-
   const d = document.getElementById('fundDetail');
-
+  
   d.innerHTML = `
     <div class="metric-grid">
       <div class="metric"><div class="metric-label">AUM</div><div class="metric-value">${fmtM(f.aum)}</div>
@@ -324,7 +314,7 @@ function renderDetail() {
         ? `<div class="metric"><div class="metric-label">Promedio histórico</div><div class="metric-value">${f.returnAvg.toFixed(2)}%</div><div class="metric-sub">${f.years} años</div></div>`
         : `<div class="metric"><div class="metric-label">Tiempo</div><div class="metric-value">${f.years} años</div></div>`}
     </div>
-
+    
     ${navHist.length > 1 ? `
     <div class="chart-card" style="margin-bottom:1.5rem;">
       <div class="chart-title">Evolución NAV</div>
@@ -339,7 +329,7 @@ function renderDetail() {
       </div>
       <div style="position:relative;height:130px;"><canvas id="navTrendChart"></canvas></div>
     </div>` : ''}
-
+    
     ${f.dividendYield ? `
     <div class="chart-card" style="margin-bottom:1rem;">
       <div class="chart-title">Dividendos 2026</div>
@@ -355,7 +345,7 @@ function renderDetail() {
         </tbody>
       </table>
     </div>` : ''}
-
+    
     <div class="charts-row">
       <div class="chart-card">
         <div class="chart-title">Asignación de activos</div>
@@ -367,7 +357,7 @@ function renderDetail() {
         <div style="position:relative;height:200px;"><canvas id="barChart_${activeFund}"></canvas></div>
       </div>
     </div>
-
+    
     <div class="chart-card" style="margin-bottom:1.5rem;">
       <div class="chart-title">Posiciones por país</div>
       ${f.countries.map(c => `
@@ -377,12 +367,12 @@ function renderDetail() {
         </div>
       `).join('')}
     </div>
-
+    
     <div class="chart-card" style="margin-bottom:1.5rem;">
       <div class="chart-title">Mayores posiciones</div>
       <div style="position:relative;height:${Math.max(240, f.holdings.length * 36 + 60)}px;margin-bottom:8px;"><canvas id="holdChart_${activeFund}"></canvas></div>
     </div>
-
+    
     <div class="chart-card" style="margin-bottom:1.5rem;">
       <div class="chart-title" style="display:flex;justify-content:space-between;align-items:center;">
         <span>Detalle de posiciones</span>
@@ -416,24 +406,21 @@ function renderDetail() {
         </tfoot>
       </table>
     </div>
-
+    
     <div style="font-size:11px;color:var(--color-text-secondary);padding-top:4px;">
       Datos al cierre de ${DB[activeMonth].label.toLowerCase()}. Administrador: Geneva Asset Management, S.A. · Expense ratio: ${meta.expenseRatio}
     </div>
   `;
-
+  
   const pal = piePalettes[activeFund] || holdingColors;
-
-  // Pie legend
   const legend = document.getElementById(`pieLegend_${activeFund}`);
   if (legend) {
     legend.innerHTML = f.allocation.map((a, i) =>
       `<span class="leg-item"><span class="leg-dot" style="background:${pal[i]}"></span>${a.l} ${a.p}%</span>`
     ).join('');
   }
-
+  
   setTimeout(() => {
-    // NAV trend line (multi-month)
     const ntCtx = document.getElementById('navTrendChart');
     if (ntCtx) {
       charts['navTrend'] = new Chart(ntCtx, {
@@ -459,8 +446,7 @@ function renderDetail() {
         }
       });
     }
-
-    // Pie chart
+    
     const pieCtx = document.getElementById(`pieChart_${activeFund}`);
     if (pieCtx) {
       charts['pie'] = new Chart(pieCtx, {
@@ -472,8 +458,7 @@ function renderDetail() {
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw}%` } } }, cutout: '60%' }
       });
     }
-
-    // Annual returns bar
+    
     const barCtx = document.getElementById(`barChart_${activeFund}`);
     if (barCtx) {
       const vals = f.annualReturns.map(r => r.v);
@@ -493,8 +478,7 @@ function renderDetail() {
         }
       });
     }
-
-    // Holdings horizontal bar
+    
     const holdCtx = document.getElementById(`holdChart_${activeFund}`);
     if (holdCtx) {
       charts['hold'] = new Chart(holdCtx, {
