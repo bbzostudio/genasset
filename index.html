@@ -1,561 +1,539 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Geneva AM · Fund Tracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#080A0F;--s1:#0C1019;--s2:#111825;--s3:#19233A;
-  --g:#1EC87E;--gd:rgba(30,200,126,.10);--gb:rgba(30,200,126,.22);--gdk:#0A2318;
-  --r:#E04848;--rd:rgba(224,72,72,.10);
-  --t1:#ECE5D6;--t2:#7A8898;--t3:#45566A;
-  --b1:rgba(255,255,255,.055);--b2:rgba(255,255,255,.10);
-  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;
-  --mono:'SF Mono','Fira Code','Consolas',monospace;
-  --r1:6px;--r2:10px;--r3:14px;--r4:18px;
-}
-html,body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:3px}
-.page{max-width:1120px;margin:0 auto;padding:0 24px}
-
-/* HEADER */
-.hdr{border-bottom:1px solid var(--b1);position:sticky;top:0;z-index:200;background:rgba(8,10,15,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.hdr-in{max-width:1120px;margin:0 auto;padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between}
-.brand{display:flex;align-items:center;gap:11px}
-.bmark{width:32px;height:32px;background:var(--gdk);border:1px solid var(--gb);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--g);letter-spacing:-.02em}
-.bname{font-size:13px;font-weight:600;letter-spacing:-.01em;line-height:1.25}
-.btag{font-size:10px;color:var(--t3);letter-spacing:.01em}
-.hdr-r{display:flex;align-items:center;gap:14px}
-.live{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t3)}
-.ldot{width:6px;height:6px;border-radius:50%;background:var(--g);animation:blink 2.5s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
-.hdr-date{font-size:11px;color:var(--t2);font-variant-numeric:tabular-nums}
-
-/* HERO */
-.hero{padding:36px 0 28px;border-bottom:1px solid var(--b1);margin-bottom:28px;position:relative}
-.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gb) 30%,var(--gb) 70%,transparent)}
-.hero-eye{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--g);opacity:.7;margin-bottom:10px}
-.hero-h1{font-size:34px;font-weight:800;letter-spacing:-.05em;line-height:1;color:var(--t1);margin-bottom:8px}
-.hero-sub{font-size:13px;color:var(--t2);margin-bottom:28px}
-.srow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.sc{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r3);padding:14px 16px}
-.sc-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:8px}
-.sc-val{font-size:22px;font-weight:700;letter-spacing:-.03em;line-height:1}
-.sc-sub{font-size:11px;color:var(--t2);margin-top:4px}
-
-/* SECTION HEADER */
-.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.sh-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--t3)}
-
-/* MONTH PILLS */
-.mpills{display:flex;gap:3px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:3px}
-.mp{padding:5px 13px;font-size:12px;font-weight:500;border:none;background:transparent;color:var(--t3);border-radius:7px;cursor:pointer;transition:all .15s}
-.mp.on{background:var(--s3);color:var(--t1)}
-.mp:hover:not(.on){color:var(--t2)}
-
-/* FUND CARDS */
-.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
-.fc{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r4);padding:20px;cursor:pointer;transition:border-color .2s,background .2s;position:relative;overflow:hidden}
-.fc.on{background:var(--s2);border-color:var(--b2)}
-.fc:hover:not(.on){border-color:rgba(255,255,255,.08)}
-.fc-top{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r4) var(--r4) 0 0}
-.fc-tkr{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;margin-bottom:6px}
-.fc-nm{font-size:14px;font-weight:600;letter-spacing:-.01em;margin-bottom:14px}
-.fc-aum{font-size:26px;font-weight:800;letter-spacing:-.045em;line-height:1;margin-bottom:3px}
-.fc-meta{font-size:11px;color:var(--t2);margin-bottom:2px}
-.fc-spk{height:34px;margin:12px 0 4px}
-.fc-spklbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
-.fc-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--b1);padding-top:12px}
-.st-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px}
-.st-val{font-size:15px;font-weight:700;letter-spacing:-.02em}
-
-/* TABS */
-.ftabs{display:flex;gap:6px;flex-wrap:wrap}
-.ft{padding:7px 16px;font-size:13px;font-weight:500;border:1px solid var(--b1);border-radius:var(--r2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s;letter-spacing:-.01em}
-.ft.on{background:var(--s2);color:var(--t1);border-color:var(--b2)}
-.ft:hover:not(.on){color:var(--t1);border-color:rgba(255,255,255,.07)}
-
-/* METRICS */
-.mets{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-bottom:12px}
-.mc{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:14px 16px}
-.mc-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:8px}
-.mc-val{font-size:22px;font-weight:700;letter-spacing:-.025em;line-height:1}
-.mc-sub{font-size:11px;color:var(--t2);margin-top:5px}
-.mc-delta{font-size:11px;margin-top:5px;font-variant-numeric:tabular-nums}
-
-/* COLOR UTILS */
-.up{color:var(--g)}.dn{color:var(--r)}.nu{color:var(--t2)}
-
-/* CHART BLOCK */
-.cb{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r3);padding:18px;margin-bottom:12px}
-.cb-hdr{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--t3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
-.cb-note{font-size:10px;color:var(--t3);font-weight:400}
-.r2c{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-
-/* LEGEND */
-.leg{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
-.li{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2)}
-.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-
-/* BARS */
-.bar{margin-bottom:9px}
-.bar-h{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;color:var(--t2)}
-.bar-h strong{color:var(--t1);font-weight:600}
-.bar-tr{height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
-.bar-fl{height:100%;border-radius:2px;transition:width .7s cubic-bezier(.22,1,.36,1)}
-
-/* TABLE */
-.dt{width:100%;border-collapse:collapse;font-size:12px}
-.dt th{padding:7px 10px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);font-weight:500;border-bottom:1px solid var(--b1)}
-.dt th:first-child,.dt th:nth-child(2){text-align:left}
-.dt td{padding:8px 10px;border-bottom:1px solid var(--b1);text-align:right;font-variant-numeric:tabular-nums}
-.dt td:first-child{text-align:left}
-.dt td:nth-child(2){text-align:left;color:var(--t2)}
-.dt tbody tr:last-child td{border-bottom:none}
-.dt tbody tr:hover td{background:rgba(255,255,255,.012)}
-.dt tfoot td{border-top:1px solid var(--b2);border-bottom:none;font-weight:600;color:var(--t1)}
-.tkr{font-family:var(--mono);font-size:11px;background:var(--s3);color:var(--t1);padding:2px 6px;border-radius:4px;display:inline-block}
-.bdg{display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;font-variant-numeric:tabular-nums}
-.bdg-up{background:var(--gd);color:var(--g)}
-.bdg-dn{background:var(--rd);color:var(--r)}
-.bdg-new{background:rgba(100,130,255,.13);color:#8898FF}
-.bdg-out{font-size:10px;color:var(--t3)}
-
-/* DIVIDENDS */
-.dvrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.dvc{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r2);padding:12px 14px}
-.dvc-l{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:6px}
-.dvc-v{font-size:20px;font-weight:700;letter-spacing:-.02em}
-
-/* NAV STRIP */
-.nvstrip{display:flex;gap:24px;margin-bottom:14px}
-.nvs-l{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:3px}
-.nvs-v{font-size:15px;font-weight:700;letter-spacing:-.02em}
-.nvs-d{font-size:11px;margin-top:2px}
-
-/* FUND INFO */
-.infogrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px}
-.inf{display:flex;flex-direction:column;gap:10px}
-.inf-k{color:var(--t3);font-size:11px;display:block;margin-bottom:2px}
-.inf-v{color:var(--t1)}
-
-/* INDUSTRY 2-COL */
-.ind2{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
-
-/* FOOTER */
-.ftr{border-top:1px solid var(--b1);padding:24px 0 40px;color:var(--t3);font-size:11px;line-height:1.8}
-
-/* RESPONSIVE */
-@media(max-width:780px){.fgrid,.r2c{grid-template-columns:1fr}.srow{grid-template-columns:1fr 1fr}.dvrow{grid-template-columns:1fr 1fr}.infogrid{grid-template-columns:1fr}.hero-h1{font-size:24px}}
-@media(max-width:480px){.srow,.dvrow{grid-template-columns:1fr}.mets{grid-template-columns:repeat(2,1fr)}.page{padding:0 16px}.hdr-in{padding:0 16px}}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.dash { padding: 1.5rem 1rem; }
+.section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+.fund-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.tab-btn { padding: 6px 14px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.tab-btn.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.metric-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.metric-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.pos-green { color: #1D9E75; }
+.pos-red { color: #E24B4A; }
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5rem; }
+.chart-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem; }
+.chart-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+.leg-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.holdings-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.holdings-table th { text-align: left; padding: 6px 8px; color: var(--color-text-secondary); font-weight: 400; font-size: 11px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.holdings-table td { padding: 7px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+.holdings-table tr:last-child td { border-bottom: none; }
+.ticker { font-family: var(--font-mono); font-size: 12px; background: var(--color-background-secondary); padding: 2px 5px; border-radius: 3px; }
+.overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+.fund-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; cursor: pointer; transition: border-color 0.15s; }
+.fund-card:hover { border-color: var(--color-border-primary); }
+.fund-card-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.fund-card-aum { font-size: 20px; font-weight: 500; margin-bottom: 2px; }
+.fund-card-meta { font-size: 12px; color: var(--color-text-secondary); }
+.bar-wrap { margin-bottom: 8px; }
+.bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 3px; }
+.bar-track { height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; }
+.month-pills { display: flex; gap: 6px; margin-bottom: 1.5rem; }
+.month-pill { padding: 5px 14px; font-size: 12px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.month-pill.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+.chg-badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+.chg-up { background: rgba(29,158,117,0.12); color: #1D9E75; }
+.chg-dn { background: rgba(226,75,74,0.12); color: #E24B4A; }
+.chg-new { background: rgba(100,130,255,0.12); color: #8898FF; }
+@media (max-width: 500px) { .charts-row { grid-template-columns: 1fr; } .overview-grid { grid-template-columns: 1fr; } }
 </style>
-</head>
-<body>
 
-<header class="hdr">
-  <div class="hdr-in">
-    <div class="brand">
-      <div class="bmark">GA</div>
-      <div>
-        <div class="bname">Geneva Asset Management</div>
-        <div class="btag">Panamá · SMV · Bolsa Latinoamericana de Valores</div>
-      </div>
-    </div>
-    <div class="hdr-r">
-      <span class="live"><span class="ldot"></span>Actualizado</span>
-      <span class="hdr-date" id="hdrD"></span>
-    </div>
+<div class="dash">
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Fund tracker dashboard showing Encina Fund, GenAsset U.S. Income Fund, and Tagua Fund</h2>
+
+<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;">
+  <div>
+    <p style="font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px;">Fund tracker</p>
+    <p style="font-size: 13px; color: var(--color-text-secondary);">Geneva Asset Management</p>
   </div>
-</header>
+  <div class="month-pills" id="monthPills"></div>
+</div>
 
-<main class="page" style="padding-top:0">
-  <div class="hero">
-    <div class="hero-eye">Geneva Asset Management · Panamá</div>
-    <h1 class="hero-h1">Fund Tracker</h1>
-    <p class="hero-sub">Datos al cierre mensual · 3 fondos bajo administración</p>
-    <div class="srow" id="srow"></div>
-  </div>
+<p class="section-title">Portfolio overview</p>
+<div class="overview-grid" id="overviewGrid"></div>
 
-  <div class="sh">
-    <span class="sh-lbl">Portfolio Overview</span>
-    <div class="mpills" id="mpills"></div>
-  </div>
-  <div class="fgrid" id="fgrid"></div>
+<div class="fund-tabs" id="fundTabs"></div>
 
-  <div class="sh" style="margin-top:4px">
-    <span class="sh-lbl">Fund Detail</span>
-    <div class="ftabs" id="ftabs"></div>
-  </div>
-  <div id="det"></div>
-</main>
-
-<div class="page" style="padding-top:0">
-  <footer class="ftr">
-    <p>Datos al cierre del período indicado. Administrador: Geneva Asset Management, S.A. · Calle 50, Torre Global Bank, Piso 25, Panamá · Tel. 210-1430</p>
-    <p>Información completa disponible en los prospectos informativos. Este documento es de carácter informativo y no constituye una oferta de inversión.</p>
-    <p>Auditores: KPMG Panamá · Custodio: Banco Aliado, BNY Pershing, LatinClear · Inscripción: Bolsa Latinoamericana de Valores</p>
-  </footer>
+<div id="fundDetail"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// ═══════════════════════════════════════════
-// CHART DEFAULTS (dark theme)
-// ═══════════════════════════════════════════
-Object.assign(Chart.defaults,{color:'#7A8898',borderColor:'rgba(255,255,255,.04)',font:{family:"'Inter',-apple-system,BlinkMacSystemFont,sans-serif"}});
-Object.assign(Chart.defaults.plugins.tooltip,{backgroundColor:'#19233A',titleColor:'#ECE5D6',bodyColor:'#7A8898',borderColor:'rgba(255,255,255,.10)',borderWidth:1,padding:10,cornerRadius:6});
+// ─── DATA ───────────────────────────────────────────────
+const TIMELINE = ['apr2026', 'may2026'];
 
-// ═══════════════════════════════════════════
-// DATA
-// ═══════════════════════════════════════════
-const TL=['apr2026','may2026'];
-
-const META={
-  encina:{id:'encina',name:'Encina Fund',ticker:'ENCINA',c:'#1EC87E',cd:'rgba(30,200,126,.10)',nav0:100,inc:'01/03/2022',isin:'PAL3015791A4',adm:'Fernando A. Lewis, Geneva Asset Management, S.A.',exp:'1.00%',type:'Cerrado',cur:'USD'},
-  gusifund:{id:'gusifund',name:'GenAsset U.S. Income Fund',ticker:'GUSIFUND',c:'#4A9EE0',cd:'rgba(74,158,224,.10)',nav0:100,inc:'25/02/2026',isin:'PAL7514271B2',adm:'Geneva Asset Management, S.A. (GenAsset)',exp:'0.50%',type:'Cerrado',cur:'USD',div:true},
-  tagua:{id:'tagua',name:'Tagua Fund',ticker:'TAGUA',c:'#8B7FE8',cd:'rgba(139,127,232,.10)',nav0:1000,inc:'16/08/2010',isin:'PAL3383391A7',adm:'Joaquín De La Guardia, Geneva Asset Management, S.A.',exp:'Equities 1.0625% / Others 0.3625%',type:'Cerrado',cur:'USD'}
+const META = {
+  encina:   { id:'encina',   name:'Encina Fund',               ticker:'ENCINA',   color:'#1D9E75', navInitial:100,  inception:'2022-03-01', expenseRatio:'1.00%' },
+  gusifund: { id:'gusifund', name:'GenAsset U.S. Income Fund', ticker:'GUSIFUND', color:'#378ADD', navInitial:100,  inception:'2026-02-25', expenseRatio:'0.50%', div:true },
+  tagua:    { id:'tagua',    name:'Tagua Fund',                 ticker:'TAGUA',    color:'#7F77DD', navInitial:1000, inception:'2010-08-16', expenseRatio:'Equities 1.0625% / Others 0.3625%' }
 };
 
-const APAL={
-  encina:['#1EC87E','#0A3020'],
-  gusifund:['#4A9EE0','#7AC0F0','#2A4A6A'],
-  tagua:['#8B7FE8','#4A4490']
-};
-
-const HCOL=['#1EC87E','#4A9EE0','#D4873A','#D44A7A','#8B7FE8','#2AD4B4','#D4C040','#4AD470','#A42AD4','#D44A2A','#70809A'];
-
-const DB={
-  apr2026:{
-    lbl:'Abril 2026',sh:"Abr '26",
-    encina:{
-      aum:42209853.88,nav:164.96,sh:255879,shr:175,mtd:5.09,ytd:-0.52,tot:64.96,avg:12.76,yrs:4.17,
-      alloc:[{l:'Acciones Comunes',p:94},{l:'Efectivo',p:6}],
-      cnt:[{l:'Estados Unidos',p:73},{l:'Panamá',p:10},{l:'Suiza',p:6},{l:'Canadá',p:6},{l:'España',p:3},{l:'Francia',p:2}],
-      hld:[{s:'BRK A',n:'Berkshire Hathaway Cl A',p:25.28},{s:'AMZN',n:'Amazon.com Inc.',p:11.80},{s:'CPA',n:'Copa Holdings, S.A.',p:10.27},{s:'V',n:'Visa Inc.',p:8.59},{s:'SPGI',n:'S&P Global Inc.',p:6.47},{s:'DUTH',n:'U.S. Treasury Money Market',p:6.11},{s:'CFR:CH',n:'Richemont A.G.',p:5.84},{s:'CSU:CA',n:'Constellation Software',p:5.59},{s:'MSFT',n:'Microsoft Corp.',p:4.83},{s:'OXY',n:'Occidental Petroleum',p:3.87}],
-      ret:[{y:'2022*',v:-10.72},{y:'2023',v:28.16},{y:'2024',v:24.59},{y:'2025',v:16.32},{y:'2026 YTD',v:-0.52}]
+const DB = {
+  apr2026: {
+    label: 'Abril 2026', short: "Abr '26",
+    encina: {
+      aum:42209853.88, nav:164.96, shares:255879, shareholders:175,
+      returnMtd:5.09, returnYtd:-0.52, returnTotal:64.96, returnAvg:12.76, years:4.17,
+      annualReturns:[{y:'2022*',v:-10.72},{y:'2023',v:28.16},{y:'2024',v:24.59},{y:'2025',v:16.32},{y:'2026 YTD',v:-0.52}],
+      allocation:[{l:'Acciones comunes',p:94},{l:'Efectivo',p:6}],
+      countries:[{l:'Estados Unidos',p:73},{l:'Panamá',p:10},{l:'Suiza',p:6},{l:'Canadá',p:6},{l:'España',p:3},{l:'Francia',p:2}],
+      holdings:[
+        {s:'BRK A', n:'Berkshire Hathaway Cl A',        p:25.28},
+        {s:'AMZN',  n:'Amazon.com',                     p:11.80},
+        {s:'CPA',   n:'Copa Holdings',                  p:10.27},
+        {s:'V',     n:'Visa Inc.',                      p:8.59},
+        {s:'SPGI',  n:'S&P Global Inc.',                p:6.47},
+        {s:'DUTH',  n:'U.S. Treasury Money Market',     p:6.11},
+        {s:'CFR:CH',n:'Compagnie Financiere Richemont', p:5.84},
+        {s:'CSU:CA',n:'Constellation Software',         p:5.59},
+        {s:'MSFT',  n:'Microsoft Corp.',                p:4.83},
+        {s:'OXY',   n:'Occidental Petroleum',           p:3.87},
+      ]
     },
-    gusifund:{
-      aum:4375823.51,nav:97.87,sh:44710,shr:16,mtd:2.02,ytd:-1.63,tot:-1.63,yrs:0.18,
-      dy:6.13,dps:1.50,df:'Trimestral',
+    gusifund: {
+      aum:4375823.51, nav:97.87, shares:44710, shareholders:16,
+      returnMtd:2.02, returnYtd:-1.63, returnTotal:-1.63, years:0.18,
+      dividendYield:6.13, dividendPerShare:1.50,
       divs:[{d:'Mar 2026',a:0.50,paid:true},{d:'Jun 2026',a:1.50,paid:false},{d:'Sep 2026',a:1.50,paid:false},{d:'Dic 2026',a:1.50,paid:false}],
-      alloc:[{l:'Acciones',p:50},{l:'Bonos',p:48},{l:'Efectivo',p:2}],
-      cnt:[{l:'Estados Unidos',p:98},{l:'Panamá',p:2}],
-      hld:[{s:'BRK B',n:'Berkshire Hathaway Inc. Cl B',p:23.34},{s:'JPM VAR',n:'JPMorgan Chase Variable 10/31',p:21.06},{s:'US-T',n:'U.S. T-Bills 02/27 YTM 3.48%',p:9.18},{s:'C 4.45%',n:'Citigroup Inc. 4.450% 09/27',p:9.12},{s:'GS 04/30',n:'Goldman Sachs Group 04/30',p:9.12},{s:'MSFT',n:'Microsoft Corp.',p:6.15},{s:'V',n:'Visa Inc.',p:6.08},{s:'META',n:'Meta Platforms Inc.',p:4.89},{s:'SPGI',n:'S&P Global Inc.',p:4.59},{s:'AMZN',n:'Amazon.com Inc.',p:2.94}],
-      ret:[{y:'2026 YTD',v:-1.63}]
+      annualReturns:[{y:'2026 YTD',v:-1.63}],
+      allocation:[{l:'Acciones',p:50},{l:'Bonos',p:48},{l:'Efectivo',p:2}],
+      countries:[{l:'Estados Unidos',p:98},{l:'Panamá',p:2}],
+      holdings:[
+        {s:'BRK B',   n:'Berkshire Hathaway Cl B',             p:23.34},
+        {s:'JPM VAR', n:'JPMorgan Chase Variable 10/31',       p:21.06},
+        {s:'US-T',    n:'U.S. T-Bills 02/27 YTM 3.48%',        p:9.18},
+        {s:'C 4.45%', n:'Citigroup Inc 4.450% 09/27',          p:9.12},
+        {s:'GS 04/30',n:'Goldman Sachs Group 04/30',           p:9.12},
+        {s:'MSFT',    n:'Microsoft Corp.',                     p:6.15},
+        {s:'V',       n:'Visa Inc.',                           p:6.08},
+        {s:'META',    n:'Meta Platforms Inc.',                 p:4.89},
+        {s:'SPGI',    n:'S&P Global Inc.',                     p:4.59},
+        {s:'AMZN',    n:'Amazon.com',                          p:2.94},
+      ]
     },
-    tagua:{
-      aum:77718677.51,nav:4156.75,sh:18697,shr:164,mtd:1.24,ytd:5.73,tot:315.68,avg:9.49,yrs:15.72,
-      alloc:[{l:'Acciones Comunes',p:94},{l:'Efectivo',p:6}],
-      cnt:[{l:'Estados Unidos',p:86},{l:'Panamá',p:7},{l:'Suiza',p:5},{l:'Bélgica',p:1},{l:'Irlanda',p:1}],
-      hld:[{s:'BRK B',n:'Berkshire Hathaway Inc. Cl B',p:24.59},{s:'KHC',n:'Kraft Heinz Company',p:15.59},{s:'STZ',n:'Constellation Brands Inc.',p:8.83},{s:'CPA',n:'Copa Holdings, S.A.',p:7.11},{s:'PEP',n:'PepsiCo Inc.',p:4.46},{s:'GIS',n:'General Mills Inc.',p:3.59},{s:'VZ',n:'Verizon Communications',p:3.34},{s:'CPB',n:"The Campbell's Co.",p:2.86},{s:'NSRGY',n:'Nestlé S.A.',p:2.63},{s:'DUTH',n:'U.S. Treasury Money Market',p:5.53}],
-      ret:[{y:'2017',v:24.63},{y:'2018',v:-20.41},{y:'2019',v:30.67},{y:'2020',v:-17.80},{y:'2021',v:26.17},{y:'2022',v:-11.34},{y:'2023',v:25.30},{y:'2024',v:14.93},{y:'2025',v:5.87},{y:'2026 YTD',v:5.73}]
+    tagua: {
+      aum:77718677.51, nav:4156.75, shares:18697, shareholders:164,
+      returnMtd:1.24, returnYtd:5.73, returnTotal:315.68, returnAvg:9.49, years:15.72,
+      annualReturns:[{y:'2017',v:24.63},{y:'2018',v:-20.41},{y:'2019',v:30.67},{y:'2020',v:-17.80},{y:'2021',v:26.17},{y:'2022',v:-11.34},{y:'2023',v:25.30},{y:'2024',v:14.93},{y:'2025',v:5.87},{y:'2026 YTD',v:5.73}],
+      allocation:[{l:'Acciones comunes',p:94},{l:'Efectivo',p:6}],
+      countries:[{l:'Estados Unidos',p:86},{l:'Panamá',p:7},{l:'Suiza',p:5},{l:'Bélgica',p:1},{l:'Irlanda',p:1}],
+      holdings:[
+        {s:'BRK B', n:'Berkshire Hathaway Cl B',       p:24.59},
+        {s:'KHC',   n:'Kraft Heinz Company',            p:15.59},
+        {s:'STZ',   n:'Constellation Brands',           p:8.83},
+        {s:'CPA',   n:'Copa Holdings',                  p:7.11},
+        {s:'PEP',   n:'PepsiCo Inc.',                   p:4.46},
+        {s:'GIS',   n:'General Mills Inc.',             p:3.59},
+        {s:'VZ',    n:'Verizon Communications',         p:3.34},
+        {s:'CPB',   n:"The Campbell's Co.",             p:2.86},
+        {s:'NSRGY', n:'Nestlé S.A.',                    p:2.63},
+        {s:'DUTH',  n:'U.S. Treasury Money Market',     p:5.53},
+      ]
     }
   },
-  may2026:{
-    lbl:'Mayo 2026',sh:"May '26",
-    encina:{
-      aum:44174603.12,nav:171.82,sh:257092,shr:176,mtd:4.16,ytd:3.62,tot:71.82,avg:13.58,yrs:4.25,
-      alloc:[{l:'Acciones Comunes',p:90},{l:'Efectivo',p:10}],
-      cnt:[{l:'Estados Unidos',p:70},{l:'Panamá',p:12},{l:'Suiza',p:6},{l:'Canadá',p:6},{l:'España',p:3},{l:'Francia',p:3}],
-      ind:[{l:'Financiero',p:23},{l:'Otros',p:24},{l:'Tecnología',p:16},{l:'Transporte',p:12},{l:'Cons. Discrecional',p:12},{l:'Efectivo',p:10},{l:'Energía',p:3}],
-      hld:[{s:'BRK A',n:'Berkshire Hathaway Cl A',p:24.12,pp:25.28},{s:'CPA',n:'Copa Holdings, S.A.',p:12.12,pp:10.27},{s:'DUTH',n:'U.S. Treasury Money Market',p:10.39,pp:6.11},{s:'V',n:'Visa Inc.',p:8.12,pp:8.59},{s:'CFR:CH',n:'Richemont A.G.',p:6.36,pp:5.84},{s:'MKL',n:'Markel Group Inc.',p:6.16,pp:null},{s:'AMZN',n:'Amazon.com Inc.',p:6.12,pp:11.80},{s:'SPGI',n:'S&P Global Inc.',p:6.08,pp:6.47},{s:'CSU:CA',n:'Constellation Software',p:6.03,pp:5.59},{s:'META',n:'Meta Platforms Inc.',p:3.58,pp:null}],
-      ret:[{y:'2022*',v:-10.72},{y:'2023',v:28.16},{y:'2024',v:24.59},{y:'2025',v:16.32},{y:'2026 YTD',v:3.62}]
+
+  may2026: {
+    label: 'Mayo 2026', short: "May '26",
+    encina: {
+      aum:44174603.12, nav:171.82, shares:257092, shareholders:176,
+      returnMtd:4.16, returnYtd:3.62, returnTotal:71.82, returnAvg:13.58, years:4.25,
+      annualReturns:[{y:'2022*',v:-10.72},{y:'2023',v:28.16},{y:'2024',v:24.59},{y:'2025',v:16.32},{y:'2026 YTD',v:3.62}],
+      allocation:[{l:'Acciones comunes',p:90},{l:'Efectivo',p:10}],
+      countries:[{l:'Estados Unidos',p:70},{l:'Panamá',p:12},{l:'Suiza',p:6},{l:'Canadá',p:6},{l:'España',p:3},{l:'Francia',p:3}],
+      holdings:[
+        {s:'BRK A', n:'Berkshire Hathaway Cl A',        p:24.12, pp:25.28},
+        {s:'CPA',   n:'Copa Holdings, S.A.',             p:12.12, pp:10.27},
+        {s:'DUTH',  n:'U.S. Treasury Money Market',     p:10.39, pp:6.11},
+        {s:'V',     n:'Visa Inc.',                      p:8.12,  pp:8.59},
+        {s:'CFR:CH',n:'Compagnie Financiere Richemont', p:6.36,  pp:5.84},
+        {s:'MKL',   n:'Markel Group Inc.',              p:6.16,  pp:null},
+        {s:'AMZN',  n:'Amazon.com',                     p:6.12,  pp:11.80},
+        {s:'SPGI',  n:'S&P Global Inc.',                p:6.08,  pp:6.47},
+        {s:'CSU:CA',n:'Constellation Software',         p:6.03,  pp:5.59},
+        {s:'META',  n:'Meta Platforms Inc.',            p:3.58,  pp:null},
+      ]
     },
-    gusifund:{
-      aum:5445826.91,nav:98.90,sh:55066,shr:22,mtd:1.05,ytd:-0.60,tot:-0.60,yrs:0.26,
-      dy:6.07,dps:1.50,df:'Trimestral',
+    gusifund: {
+      aum:5445826.91, nav:98.90, shares:55066, shareholders:22,
+      returnMtd:1.05, returnYtd:-0.60, returnTotal:-0.60, years:0.26,
+      dividendYield:6.07, dividendPerShare:1.50,
       divs:[{d:'Mar 2026',a:0.50,paid:true},{d:'Jun 2026',a:1.50,paid:false},{d:'Sep 2026',a:1.50,paid:false},{d:'Dic 2026',a:1.50,paid:false}],
-      alloc:[{l:'Acciones',p:50},{l:'Bonos',p:48},{l:'Efectivo',p:2}],
-      cnt:[{l:'Estados Unidos',p:98},{l:'Panamá',p:2}],
-      ind:[{l:'Financiero',p:50},{l:'Otros',p:23},{l:'Tecnología',p:12},{l:'Gobierno',p:11},{l:'Transporte',p:2},{l:'Efectivo',p:2}],
-      hld:[{s:'BRK B',n:'Berkshire Hathaway Inc. Cl B',p:23.41,pp:23.34},{s:'JPM VAR',n:'JPMorgan Chase Variable 10/31',p:16.87,pp:21.06},{s:'GS 04/30',n:'Goldman Sachs Group 04/30',p:10.06,pp:9.12},{s:'C 4.45%',n:'Citigroup Inc. 4.450% 09/27',p:10.06,pp:9.12},{s:'US-T',n:'U.S. T-Bills 02/27 YTM 3.48%',p:7.40,pp:9.18},{s:'MSFT',n:'Microsoft Corp.',p:5.45,pp:6.15},{s:'V',n:'Visa Inc.',p:4.83,pp:6.08},{s:'MKL',n:'Markel Group Inc.',p:4.77,pp:null},{s:'META',n:'Meta Platforms Inc.',p:4.06,pp:4.89},{s:'SPGI',n:'S&P Global Inc.',p:3.63,pp:4.59}],
-      ret:[{y:'2026 YTD',v:-0.60}]
+      annualReturns:[{y:'2026 YTD',v:-0.60}],
+      allocation:[{l:'Acciones',p:50},{l:'Bonos',p:48},{l:'Efectivo',p:2}],
+      countries:[{l:'Estados Unidos',p:98},{l:'Panamá',p:2}],
+      holdings:[
+        {s:'BRK B',   n:'Berkshire Hathaway Cl B',             p:23.41, pp:23.34},
+        {s:'JPM VAR', n:'JPMorgan Chase Variable 10/31',       p:16.87, pp:21.06},
+        {s:'GS 04/30',n:'Goldman Sachs Group 04/30',           p:10.06, pp:9.12},
+        {s:'C 4.45%', n:'Citigroup Inc 4.450% 09/27',          p:10.06, pp:9.12},
+        {s:'US-T',    n:'U.S. T-Bills 02/27 YTM 3.48%',        p:7.40,  pp:9.18},
+        {s:'MSFT',    n:'Microsoft Corp.',                     p:5.45,  pp:6.15},
+        {s:'V',       n:'Visa Inc.',                           p:4.83,  pp:6.08},
+        {s:'MKL',     n:'Markel Group Inc.',                   p:4.77,  pp:null},
+        {s:'META',    n:'Meta Platforms Inc.',                 p:4.06,  pp:4.89},
+        {s:'SPGI',    n:'S&P Global Inc.',                     p:3.63,  pp:4.59},
+      ]
     },
-    tagua:{
-      aum:78284699.18,nav:4202.30,sh:18629,shr:164,mtd:1.10,ytd:6.89,tot:320.23,avg:9.51,yrs:15.8,
-      alloc:[{l:'Acciones Comunes',p:93},{l:'Efectivo',p:7}],
-      cnt:[{l:'Estados Unidos',p:92},{l:'Suiza',p:4},{l:'Bélgica',p:2},{l:'Irlanda',p:1},{l:'Canadá',p:1}],
-      ind:[{l:'Consumo Básico',p:46},{l:'Otros',p:24},{l:'Cons. Discrecional',p:7},{l:'Efectivo',p:7},{l:'Telecomunicaciones',p:5},{l:'Financiero',p:4},{l:'Energía',p:3},{l:'Tecnología',p:3},{l:'Salud',p:1}],
-      hld:[{s:'BRK B',n:'Berkshire Hathaway Inc. Cl B',p:24.46,pp:24.59},{s:'KHC',n:'Kraft Heinz Company',p:16.40,pp:15.59},{s:'STZ',n:'Constellation Brands Inc.',p:7.77,pp:8.83},{s:'PEP',n:'PepsiCo Inc.',p:4.03,pp:4.46},{s:'GIS',n:'General Mills Inc.',p:3.41,pp:3.59},{s:'VZ',n:'Verizon Communications',p:3.30,pp:3.34},{s:'DECK',n:'Deckers Outdoor Corp.',p:3.14,pp:null},{s:'CPB',n:"The Campbell's Co.",p:2.88,pp:2.86},{s:'NSRGY',n:'Nestlé S.A.',p:2.61,pp:2.63},{s:'DUTH',n:'U.S. Treasury Money Market',p:6.50,pp:5.53}],
-      ret:[{y:'2017',v:24.63},{y:'2018',v:-20.41},{y:'2019',v:30.67},{y:'2020',v:-17.80},{y:'2021',v:26.17},{y:'2022',v:-11.34},{y:'2023',v:25.30},{y:'2024',v:14.93},{y:'2025',v:5.87},{y:'2026 YTD',v:6.89}]
+    tagua: {
+      aum:78284699.18, nav:4202.30, shares:18629, shareholders:164,
+      returnMtd:1.10, returnYtd:6.89, returnTotal:320.23, returnAvg:9.51, years:15.80,
+      annualReturns:[{y:'2017',v:24.63},{y:'2018',v:-20.41},{y:'2019',v:30.67},{y:'2020',v:-17.80},{y:'2021',v:26.17},{y:'2022',v:-11.34},{y:'2023',v:25.30},{y:'2024',v:14.93},{y:'2025',v:5.87},{y:'2026 YTD',v:6.89}],
+      allocation:[{l:'Acciones comunes',p:93},{l:'Efectivo',p:7}],
+      countries:[{l:'Estados Unidos',p:92},{l:'Suiza',p:4},{l:'Bélgica',p:2},{l:'Irlanda',p:1},{l:'Canadá',p:1}],
+      holdings:[
+        {s:'BRK B', n:'Berkshire Hathaway Cl B',       p:24.46, pp:24.59},
+        {s:'KHC',   n:'Kraft Heinz Company',            p:16.40, pp:15.59},
+        {s:'STZ',   n:'Constellation Brands',           p:7.77,  pp:8.83},
+        {s:'PEP',   n:'PepsiCo Inc.',                   p:4.03,  pp:4.46},
+        {s:'GIS',   n:'General Mills Inc.',             p:3.41,  pp:3.59},
+        {s:'VZ',    n:'Verizon Communications',         p:3.30,  pp:3.34},
+        {s:'DECK',  n:'Deckers Outdoor Corp.',          p:3.14,  pp:null},
+        {s:'CPB',   n:"The Campbell's Co.",             p:2.88,  pp:2.86},
+        {s:'NSRGY', n:'Nestlé S.A.',                    p:2.61,  pp:2.63},
+        {s:'DUTH',  n:'U.S. Treasury Money Market',     p:6.50,  pp:5.53},
+      ]
     }
   }
 };
 
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
-let M='may2026',F='encina',CH={};
+// ─── STATE ──────────────────────────────────────────────
+let activeMonth = 'may2026';
+let activeFund  = 'encina';
+let charts = {};
 
-// ═══════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════
-const fmt=(n,d=2)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
-const fmtM=n=>'$'+(n/1e6).toFixed(2)+'M';
-const sgn=n=>(n>=0?'+':'')+n.toFixed(2)+'%';
-const cc=n=>n>0?'up':n<0?'dn':'nu';
-const gc=n=>n>0?'var(--g)':n<0?'var(--r)':'var(--t2)';
+// ─── HELPERS ────────────────────────────────────────────
+const fmt  = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+const fmtM = n => '$' + (n / 1e6).toFixed(2) + 'M';
+const pct  = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const clr  = n => n >= 0 ? 'pos-green' : 'pos-red';
 
-function killD(){Object.keys(CH).filter(k=>!k.startsWith('sp_')).forEach(k=>{try{CH[k].destroy()}catch(e){}; delete CH[k]})}
-function killA(){Object.values(CH).forEach(c=>{try{c.destroy()}catch(e){}});CH={}}
-
-// ═══════════════════════════════════════════
-// HEADER DATE
-// ═══════════════════════════════════════════
-document.getElementById('hdrD').textContent=new Date().toLocaleDateString('es-PA',{day:'numeric',month:'short',year:'numeric'});
-
-// ═══════════════════════════════════════════
-// SUMMARY ROW
-// ═══════════════════════════════════════════
-function renderSum(){
-  const snap=DB[M],ids=Object.keys(META);
-  const totAum=ids.reduce((s,id)=>s+snap[id].aum,0);
-  const totShr=ids.reduce((s,id)=>s+snap[id].shr,0);
-  const avgMtd=ids.reduce((s,id)=>s+snap[id].mtd,0)/ids.length;
-  const pi=TL.indexOf(M)-1,prev=pi>=0?DB[TL[pi]]:null;
-  const pAum=prev?ids.reduce((s,id)=>s+prev[id].aum,0):null;
-  const pShr=prev?ids.reduce((s,id)=>s+prev[id].shr,0):null;
-  const aumD=pAum!=null?((totAum-pAum)/pAum*100):null;
-  const shrD=pShr!=null?(totShr-pShr):null;
-
-  document.getElementById('srow').innerHTML=`
-    <div class="sc"><div class="sc-lbl">AUM Total</div><div class="sc-val">${fmtM(totAum)}</div>${aumD!=null?`<div class="sc-sub ${cc(aumD)}">${sgn(aumD)} vs mes anterior</div>`:'<div class="sc-sub">3 fondos activos</div>'}</div>
-    <div class="sc"><div class="sc-lbl">Fondos</div><div class="sc-val">${ids.length}</div><div class="sc-sub">Administrados por Geneva AM</div></div>
-    <div class="sc"><div class="sc-lbl">Accionistas</div><div class="sc-val">${totShr}</div>${shrD!=null?`<div class="sc-sub ${cc(shrD)}">${shrD>0?'+':''}${shrD} vs mes anterior</div>`:''}</div>
-    <div class="sc"><div class="sc-lbl">MTD Promedio</div><div class="sc-val ${cc(avgMtd)}">${sgn(avgMtd)}</div><div class="sc-sub">Promedio de los 3 fondos</div></div>`;
+function destroyCharts() {
+  Object.values(charts).forEach(c => { try { c.destroy(); } catch(e){} });
+  charts = {};
 }
 
-// ═══════════════════════════════════════════
-// MONTH PILLS
-// ═══════════════════════════════════════════
-function renderPills(){
-  document.getElementById('mpills').innerHTML=TL.map(m=>`<button class="mp${m===M?' on':''}" onclick="setMonth('${m}')">${DB[m].sh}</button>`).join('');
+const piePalettes = {
+  encina:   ['#1D9E75','#9FE1CB'],
+  gusifund: ['#378ADD','#85B7EB','#B5D4F4'],
+  tagua:    ['#7F77DD','#CECBF6'],
+};
+
+const holdingColors = [
+  '#1D9E75','#378ADD','#7F77DD','#D85A30','#BA7517',
+  '#E24B4A','#D4537E','#639922','#0F6E56','#185FA5','#888780'
+];
+
+function getPrevData(fundId) {
+  const idx = TIMELINE.indexOf(activeMonth);
+  if (idx <= 0) return null;
+  return DB[TIMELINE[idx - 1]][fundId];
 }
 
-// ═══════════════════════════════════════════
-// FUND GRID
-// ═══════════════════════════════════════════
-function renderGrid(){
-  const snap=DB[M],pi=TL.indexOf(M)-1,prev=pi>=0?DB[TL[pi]]:null;
-  document.getElementById('fgrid').innerHTML=Object.values(META).map(m=>{
-    const f=snap[m.id],pf=prev?prev[m.id]:null;
-    const aumD=pf?((f.aum-pf.aum)/pf.aum*100):null;
+function changeBadge(h, prevHoldings) {
+  if (!prevHoldings) return '';
+  if (h.pp === null || h.pp === undefined) return '<span class="chg-badge chg-new">NEW</span>';
+  const d = h.p - h.pp;
+  if (Math.abs(d) < 0.05) return '';
+  return `<span class="chg-badge ${d > 0 ? 'chg-up' : 'chg-dn'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(2)}%</span>`;
+}
+
+// ─── MONTH PILLS ────────────────────────────────────────
+function renderMonthPills() {
+  const el = document.getElementById('monthPills');
+  el.innerHTML = TIMELINE.map(m =>
+    `<button class="month-pill ${m === activeMonth ? 'active' : ''}" onclick="setMonth('${m}')">${DB[m].short}</button>`
+  ).join('');
+}
+
+// ─── OVERVIEW GRID ──────────────────────────────────────
+function renderOverview() {
+  const snap = DB[activeMonth];
+  const g = document.getElementById('overviewGrid');
+  g.innerHTML = Object.values(META).map(meta => {
+    const f = snap[meta.id];
     return `
-      <div class="fc${m.id===F?' on':''}" data-id="${m.id}" onclick="setFund('${m.id}')">
-        <div class="fc-top" style="background:linear-gradient(90deg,${m.c},${m.c}44)"></div>
-        <div class="fc-tkr">${m.ticker}</div>
-        <div class="fc-nm" style="color:${m.c}">${m.name}</div>
-        <div class="fc-aum">${fmtM(f.aum)}</div>
-        <div class="fc-meta">${f.shr} accionistas · ${f.sh.toLocaleString('en-US')} acc.${aumD!=null?` · <span class="${cc(aumD)}">${sgn(aumD)}</span>`:''}</div>
-        <canvas class="fc-spk" id="sp_${m.id}"></canvas>
-        <div class="fc-spklbl">NAV histórico · ${TL.length} período${TL.length>1?'s':''}</div>
-        <div class="fc-st">
-          <div><div class="st-lbl">NAV</div><div class="st-val">${fmt(f.nav)}</div></div>
-          <div><div class="st-lbl">MTD</div><div class="st-val ${cc(f.mtd)}">${sgn(f.mtd)}</div></div>
-          <div><div class="st-lbl">Total</div><div class="st-val ${cc(f.tot)}">${sgn(f.tot)}</div></div>
+      <div class="fund-card" onclick="setFund('${meta.id}')">
+        <div class="fund-card-name" style="color:${meta.color}">${meta.name}</div>
+        <div class="fund-card-aum">${fmtM(f.aum)}</div>
+        <div class="fund-card-meta">AUM · ${f.shareholders} accionistas</div>
+        <div style="margin-top:10px; display:flex; gap:16px;">
+          <div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">NAV</div>
+            <div style="font-size:15px;font-weight:500">${fmt(f.nav)}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">MTD</div>
+            <div style="font-size:15px;font-weight:500" class="${clr(f.returnMtd)}">${pct(f.returnMtd)}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">Total</div>
+            <div style="font-size:15px;font-weight:500" class="${clr(f.returnTotal)}">${pct(f.returnTotal)}</div>
+          </div>
         </div>
-      </div>`;
+      </div>
+    `;
   }).join('');
-
-  setTimeout(()=>{
-    Object.values(META).forEach(m=>{
-      const el=document.getElementById(`sp_${m.id}`);
-      if(!el)return;
-      if(CH[`sp_${m.id}`]){try{CH[`sp_${m.id}`].destroy()}catch(e){}}
-      CH[`sp_${m.id}`]=new Chart(el,{
-        type:'line',
-        data:{labels:TL.map(t=>DB[t].sh),datasets:[{data:TL.map(t=>DB[t][m.id].nav),borderColor:m.c,backgroundColor:m.cd,borderWidth:1.5,fill:true,tension:.4,pointRadius:3,pointBackgroundColor:m.c,pointBorderColor:'#080A0F',pointBorderWidth:2}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:500}}
-      });
-    });
-  },50);
 }
 
-// ═══════════════════════════════════════════
-// FUND TABS
-// ═══════════════════════════════════════════
-function renderTabs(){
-  document.getElementById('ftabs').innerHTML=Object.values(META).map(m=>`<button class="ft${m.id===F?' on':''}" data-fund="${m.id}" onclick="setFund('${m.id}')">${m.name}</button>`).join('');
+// ─── FUND TABS ──────────────────────────────────────────
+function renderTabs() {
+  const t = document.getElementById('fundTabs');
+  t.innerHTML = Object.values(META).map(meta =>
+    `<button class="tab-btn ${meta.id === activeFund ? 'active' : ''}" onclick="setFund('${meta.id}')">${meta.name}</button>`
+  ).join('');
 }
 
-// ═══════════════════════════════════════════
-// FUND DETAIL
-// ═══════════════════════════════════════════
-function renderDetail(){
-  killD();
-  const meta=META[F],f=DB[M][F];
-  const pi=TL.indexOf(M)-1,pSnap=pi>=0?DB[TL[pi]]:null,pf=pSnap?pSnap[F]:null;
+// ─── FUND DETAIL ────────────────────────────────────────
+function renderDetail() {
+  destroyCharts();
+  const meta = META[activeFund];
+  const f    = DB[activeMonth][activeFund];
+  const prev = getPrevData(activeFund);
+  const showChg = prev !== null;
+  const totalHoldingPct = f.holdings.reduce((s, h) => s + h.p, 0);
 
-  const navD=pf?f.nav-pf.nav:null;
-  const aumD=pf?f.aum-pf.aum:null;
-  const shrD=pf?f.shr-pf.shr:null;
-  const sharesD=pf?f.sh-pf.sh:null;
-  const totPct=f.hld.reduce((s,h)=>s+h.p,0);
-  const navHist=TL.slice(0,TL.indexOf(M)+1).map(t=>({sh:DB[t].sh,lbl:DB[t].lbl,nav:DB[t][F].nav,aum:DB[t][F].aum}));
-  const showChg=pi>=0;
+  // Nav history across months up to current
+  const navHist = TIMELINE.slice(0, TIMELINE.indexOf(activeMonth) + 1).map(t => ({
+    short: DB[t].short, label: DB[t].label,
+    nav: DB[t][activeFund].nav, aum: DB[t][activeFund].aum
+  }));
 
-  function badge(h){
-    if(!showChg)return'';
-    if(h.pp===null||h.pp===undefined)return'<span class="bdg bdg-new">NEW</span>';
-    const d=h.p-h.pp;
-    if(Math.abs(d)<0.05)return'';
-    return`<span class="bdg ${d>0?'bdg-up':'bdg-dn'}">${d>0?'▲':'▼'} ${Math.abs(d).toFixed(2)}%</span>`;
-  }
-  const exited=pf?pf.hld.filter(ph=>!f.hld.find(h=>h.s===ph.s)):[];
+  // Holdings change badge helper (needs prev holdings array)
+  const prevHoldings = prev ? prev.holdings : null;
 
-  document.getElementById('det').innerHTML=`
-    <div class="mets">
-      <div class="mc"><div class="mc-lbl">AUM</div><div class="mc-val">${fmtM(f.aum)}</div>${aumD!=null?`<div class="mc-delta ${cc(aumD)}">${aumD>=0?'▲':'▼'} ${fmtM(Math.abs(aumD))} vs ${pSnap.sh}</div>`:'<div class="mc-sub">Activos totales netos</div>'}</div>
-      <div class="mc"><div class="mc-lbl">NAV por Acción</div><div class="mc-val">${fmt(f.nav)}</div>${navD!=null?`<div class="mc-delta ${cc(navD)}">${navD>=0?'▲':'▼'} ${fmt(Math.abs(navD))} vs ${pSnap.sh}</div>`:`<div class="mc-sub">Inicial: ${fmt(meta.nav0)}</div>`}</div>
-      <div class="mc"><div class="mc-lbl">Retorno MTD</div><div class="mc-val ${cc(f.mtd)}">${sgn(f.mtd)}</div><div class="mc-sub">${DB[M].lbl}</div></div>
-      <div class="mc"><div class="mc-lbl">Retorno YTD</div><div class="mc-val ${cc(f.ytd)}">${sgn(f.ytd)}</div><div class="mc-sub">Año en curso 2026</div></div>
-      <div class="mc"><div class="mc-lbl">Retorno Total</div><div class="mc-val ${cc(f.tot)}">${sgn(f.tot)}</div><div class="mc-sub">Desde ${meta.inc}</div></div>
-      ${f.avg?`<div class="mc"><div class="mc-lbl">Histórico Anual</div><div class="mc-val">${f.avg.toFixed(2)}%</div><div class="mc-sub">${f.yrs} años operando</div></div>`:`<div class="mc"><div class="mc-lbl">Accionistas</div><div class="mc-val">${f.shr}</div>${shrD!=null?`<div class="mc-delta ${cc(shrD)}">${shrD>=0?'+':''}${shrD} vs ${pSnap.sh}</div>`:''}</div>`}
+  const d = document.getElementById('fundDetail');
+
+  d.innerHTML = `
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">AUM</div><div class="metric-value">${fmtM(f.aum)}</div>
+        ${prev ? `<div class="metric-sub ${clr(f.aum - prev.aum)}">${f.aum >= prev.aum ? '▲' : '▼'} ${fmtM(Math.abs(f.aum - prev.aum))} vs ${DB[TIMELINE[TIMELINE.indexOf(activeMonth)-1]].short}</div>` : ''}
+      </div>
+      <div class="metric"><div class="metric-label">NAV por acción</div><div class="metric-value">${fmt(f.nav)}</div>
+        <div class="metric-sub">Inicial ${fmt(meta.navInitial)}</div>
+      </div>
+      <div class="metric"><div class="metric-label">MTD</div><div class="metric-value ${clr(f.returnMtd)}">${pct(f.returnMtd)}</div></div>
+      <div class="metric"><div class="metric-label">YTD</div><div class="metric-value ${clr(f.returnYtd)}">${pct(f.returnYtd)}</div></div>
+      <div class="metric"><div class="metric-label">Retorno total</div><div class="metric-value ${clr(f.returnTotal)}">${pct(f.returnTotal)}</div></div>
+      ${f.returnAvg
+        ? `<div class="metric"><div class="metric-label">Promedio histórico</div><div class="metric-value">${f.returnAvg.toFixed(2)}%</div><div class="metric-sub">${f.years} años</div></div>`
+        : `<div class="metric"><div class="metric-label">Tiempo</div><div class="metric-value">${f.years} años</div></div>`}
     </div>
 
-    ${meta.div&&f.divs?`
-    <div class="cb">
-      <div class="cb-hdr">Dividendos 2026</div>
-      <div class="dvrow">
-        <div class="dvc"><div class="dvc-l">Dividend Yield</div><div class="dvc-v up">${f.dy.toFixed(2)}%</div></div>
-        <div class="dvc"><div class="dvc-l">Por Acción (Trimestral)</div><div class="dvc-v">$${f.dps.toFixed(2)}</div></div>
-        <div class="dvc"><div class="dvc-l">Frecuencia</div><div class="dvc-v" style="font-size:16px">${f.df}</div></div>
+    ${navHist.length > 1 ? `
+    <div class="chart-card" style="margin-bottom:1.5rem;">
+      <div class="chart-title">Evolución NAV</div>
+      <div style="display:flex;gap:20px;margin-bottom:12px;">
+        ${navHist.map((p, i) => `
+          <div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">${p.short}</div>
+            <div style="font-size:15px;font-weight:500;color:${i===navHist.length-1?meta.color:'var(--color-text-primary)'}">${fmt(p.nav)}</div>
+            ${i > 0 ? `<div style="font-size:11px;" class="${clr(p.nav - navHist[i-1].nav)}">${p.nav >= navHist[i-1].nav ? '▲' : '▼'} ${fmt(Math.abs(p.nav - navHist[i-1].nav))}</div>` : ''}
+          </div>
+        `).join('')}
       </div>
-      <table class="dt">
+      <div style="position:relative;height:130px;"><canvas id="navTrendChart"></canvas></div>
+    </div>` : ''}
+
+    ${f.dividendYield ? `
+    <div class="chart-card" style="margin-bottom:1rem;">
+      <div class="chart-title">Dividendos 2026</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
+        <div class="metric"><div class="metric-label">Dividend yield</div><div class="metric-value">${f.dividendYield.toFixed(2)}%</div></div>
+        <div class="metric"><div class="metric-label">Por acción (trim.)</div><div class="metric-value">$${f.dividendPerShare.toFixed(2)}</div></div>
+        <div class="metric"><div class="metric-label">Frecuencia</div><div class="metric-value" style="font-size:14px;">Trimestral</div></div>
+      </div>
+      <table class="holdings-table">
         <thead><tr><th>Fecha</th><th>Monto</th><th>Estado</th></tr></thead>
-        <tbody>${f.divs.map(d=>`<tr><td>${d.d}</td><td>$${d.a.toFixed(2)}</td><td>${d.paid?'<span class="bdg bdg-up">✓ Pagado</span>':'<span style="color:var(--t3);font-size:11px">Esperado</span>'}</td></tr>`).join('')}</tbody>
-      </table>
-    </div>`:''}
-
-    <div class="r2c">
-      <div class="cb">
-        <div class="cb-hdr">Evolución NAV</div>
-        <div class="nvstrip">
-          ${navHist.map((p,i)=>`<div><div class="nvs-l">${p.sh}</div><div class="nvs-v" style="color:${i===navHist.length-1?meta.c:'var(--t2)'}">${fmt(p.nav)}</div>${i>0?`<div class="nvs-d ${cc(p.nav-navHist[i-1].nav)}">${p.nav>=navHist[i-1].nav?'▲':'▼'} ${fmt(Math.abs(p.nav-navHist[i-1].nav))}</div>`:''}</div>`).join('')}
-        </div>
-        <div style="height:150px;position:relative"><canvas id="navCh"></canvas></div>
-      </div>
-      <div class="cb">
-        <div class="cb-hdr">Retorno Neto por Año</div>
-        <div style="height:200px;position:relative"><canvas id="retCh"></canvas></div>
-      </div>
-    </div>
-
-    <div class="r2c">
-      <div class="cb">
-        <div class="cb-hdr">Asignación de Activos</div>
-        <div class="leg" id="legA"></div>
-        <div style="height:170px;position:relative"><canvas id="allocCh"></canvas></div>
-      </div>
-      <div class="cb">
-        <div class="cb-hdr">Exposición por País</div>
-        <div id="cntB" style="padding-top:4px"></div>
-      </div>
-    </div>
-
-    ${f.ind?`
-    <div class="cb">
-      <div class="cb-hdr">Exposición por Industria</div>
-      <div class="ind2" id="indB"></div>
-    </div>`:''}
-
-    <div class="cb">
-      <div class="cb-hdr">Mayores Posiciones</div>
-      <div style="height:${Math.max(220,f.hld.length*30+50)}px;position:relative"><canvas id="hldCh"></canvas></div>
-    </div>
-
-    <div class="cb">
-      <div class="cb-hdr"><span>Detalle de Posiciones</span>${showChg?'<span class="cb-note">▲▼ cambio vs mes anterior</span>':''}</div>
-      <table class="dt">
-        <thead><tr><th>Símbolo</th><th>Nombre</th><th>Peso</th><th>Valor USD</th>${showChg?'<th>Cambio</th>':''}</tr></thead>
         <tbody>
-          ${f.hld.map(h=>`<tr><td><span class="tkr">${h.s}</span></td><td>${h.n}</td><td>${h.p.toFixed(2)}%</td><td>${fmtM(f.aum*h.p/100)}</td>${showChg?`<td>${badge(h)}</td>`:''}</tr>`).join('')}
-          ${exited.map(h=>`<tr style="opacity:.35"><td><span class="tkr">${h.s}</span></td><td>${h.n}</td><td style="color:var(--t3)">—</td><td style="color:var(--t3)">—</td>${showChg?'<td><span class="bdg-out">↓ Salió top 10</span></td>':''}</tr>`).join('')}
+          ${f.divs.map(dv => `<tr><td>${dv.d}</td><td>$${dv.a.toFixed(2)}</td><td><span style="color:${dv.paid?'#1D9E75':'var(--color-text-secondary)'};font-size:12px;">${dv.paid?'✓ Pagado':'Esperado'}</span></td></tr>`).join('')}
         </tbody>
-        <tfoot><tr><td colspan="2">Total visible</td><td>${totPct.toFixed(2)}%</td><td>${fmtM(f.aum*totPct/100)}</td>${showChg?'<td></td>':''}</tr></tfoot>
+      </table>
+    </div>` : ''}
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Asignación de activos</div>
+        <div class="legend-row" id="pieLegend_${activeFund}"></div>
+        <div style="position:relative;height:180px;"><canvas id="pieChart_${activeFund}"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Retorno neto por año</div>
+        <div style="position:relative;height:200px;"><canvas id="barChart_${activeFund}"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:1.5rem;">
+      <div class="chart-title">Posiciones por país</div>
+      ${f.countries.map(c => `
+        <div class="bar-wrap">
+          <div class="bar-label"><span>${c.l}</span><span>${c.p}%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${c.p}%;background:${meta.color};"></div></div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="chart-card" style="margin-bottom:1.5rem;">
+      <div class="chart-title">Mayores posiciones</div>
+      <div style="position:relative;height:${Math.max(240, f.holdings.length * 36 + 60)}px;margin-bottom:8px;"><canvas id="holdChart_${activeFund}"></canvas></div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:1.5rem;">
+      <div class="chart-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Detalle de posiciones</span>
+        ${showChg ? '<span style="font-size:11px;font-weight:400;color:var(--color-text-secondary);">▲▼ cambio vs mes anterior</span>' : ''}
+      </div>
+      <table class="holdings-table">
+        <thead><tr>
+          <th>Símbolo</th><th>Nombre</th>
+          <th style="text-align:right">%</th>
+          <th style="text-align:right">Valor USD</th>
+          ${showChg ? '<th></th>' : ''}
+        </tr></thead>
+        <tbody>
+          ${f.holdings.map(h => `
+            <tr>
+              <td><span class="ticker">${h.s}</span></td>
+              <td style="color:var(--color-text-secondary)">${h.n}</td>
+              <td style="text-align:right">${h.p.toFixed(2)}%</td>
+              <td style="text-align:right">${fmtM(f.aum * h.p / 100)}</td>
+              ${showChg ? `<td>${changeBadge(h, prevHoldings)}</td>` : ''}
+            </tr>
+          `).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:500;">
+            <td colspan="2">Total</td>
+            <td style="text-align:right">${totalHoldingPct.toFixed(2)}%</td>
+            <td style="text-align:right">${fmtM(f.aum * totalHoldingPct / 100)}</td>
+            ${showChg ? '<td></td>' : ''}
+          </tr>
+        </tfoot>
       </table>
     </div>
 
-    ${navHist.length>1?`
-    <div class="cb">
-      <div class="cb-hdr">Evolución AUM</div>
-      <div style="height:130px;position:relative"><canvas id="aumCh"></canvas></div>
-    </div>`:''}
+    <div style="font-size:11px;color:var(--color-text-secondary);padding-top:4px;">
+      Datos al cierre de ${DB[activeMonth].label.toLowerCase()}. Administrador: Geneva Asset Management, S.A. · Expense ratio: ${meta.expenseRatio}
+    </div>
+  `;
 
-    <div class="cb">
-      <div class="cb-hdr">Información del Fondo</div>
-      <div class="infogrid">
-        <div class="inf">
-          <div><span class="inf-k">Administrador</span><span class="inf-v">${meta.adm}</span></div>
-          <div><span class="inf-k">Fecha de Inicio</span><span class="inf-v">${meta.inc}</span></div>
-          <div><span class="inf-k">Tipo · Moneda</span><span class="inf-v">${meta.type} · ${meta.cur}</span></div>
-        </div>
-        <div class="inf">
-          <div><span class="inf-k">ISIN</span><span class="inf-v" style="font-family:var(--mono);font-size:11px">${meta.isin}</span></div>
-          <div><span class="inf-k">Expense Ratio</span><span class="inf-v">${meta.exp}</span></div>
-          <div><span class="inf-k">Acciones en circulación</span><span class="inf-v">${f.sh.toLocaleString('en-US')}${sharesD!=null&&sharesD!==0?` <span class="${cc(sharesD)}" style="font-size:11px">(${sharesD>0?'+':''}${sharesD.toLocaleString('en-US')})</span>`:''}</span></div>
-        </div>
-      </div>
-    </div>`;
+  const pal = piePalettes[activeFund] || holdingColors;
 
-  setTimeout(()=>{
-    const pal=APAL[F];
+  // Pie legend
+  const legend = document.getElementById(`pieLegend_${activeFund}`);
+  if (legend) {
+    legend.innerHTML = f.allocation.map((a, i) =>
+      `<span class="leg-item"><span class="leg-dot" style="background:${pal[i]}"></span>${a.l} ${a.p}%</span>`
+    ).join('');
+  }
 
-    // NAV trend line
-    const nc=document.getElementById('navCh');
-    if(nc) CH.navCh=new Chart(nc,{type:'line',data:{labels:navHist.map(p=>p.lbl),datasets:[{data:navHist.map(p=>p.nav),borderColor:meta.c,backgroundColor:meta.cd,borderWidth:2,fill:true,tension:.4,pointRadius:5,pointBackgroundColor:meta.c,pointBorderColor:'#080A0F',pointBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` NAV: ${fmt(c.raw)}`}}},scales:{x:{ticks:{color:'rgba(122,136,152,.8)',font:{size:11}},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{callback:v=>'$'+v.toFixed(0),color:'rgba(122,136,152,.8)',font:{size:11}},grid:{color:'rgba(255,255,255,.03)'}}}}});
-
-    // Annual returns bar
-    const rc=document.getElementById('retCh');
-    if(rc){const vs=f.ret.map(r=>r.v);CH.retCh=new Chart(rc,{type:'bar',data:{labels:f.ret.map(r=>r.y),datasets:[{data:vs,backgroundColor:vs.map(v=>v>=0?meta.c+'CC':'#E04848CC'),borderRadius:3,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${sgn(c.raw)}`}}},scales:{x:{ticks:{font:{size:9},color:'rgba(122,136,152,.8)'},grid:{display:false}},y:{ticks:{callback:v=>v+'%',font:{size:10},color:'rgba(122,136,152,.8)'},grid:{color:'rgba(255,255,255,.03)'}}}}});}
-
-    // Allocation donut
-    const ac=document.getElementById('allocCh');
-    if(ac){
-      document.getElementById('legA').innerHTML=f.alloc.map((a,i)=>`<span class="li"><span class="ld" style="background:${pal[i]||pal[0]}"></span>${a.l} ${a.p}%</span>`).join('');
-      CH.allocCh=new Chart(ac,{type:'doughnut',data:{labels:f.alloc.map(a=>a.l),datasets:[{data:f.alloc.map(a=>a.p),backgroundColor:pal,borderWidth:2,borderColor:'rgba(0,0,0,0)'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw}%`}}}}});
+  setTimeout(() => {
+    // NAV trend line (multi-month)
+    const ntCtx = document.getElementById('navTrendChart');
+    if (ntCtx) {
+      charts['navTrend'] = new Chart(ntCtx, {
+        type: 'line',
+        data: {
+          labels: navHist.map(p => p.label),
+          datasets: [{
+            data: navHist.map(p => p.nav),
+            borderColor: meta.color,
+            backgroundColor: meta.color + '18',
+            borderWidth: 2, fill: true, tension: 0.4,
+            pointRadius: 5, pointBackgroundColor: meta.color,
+            pointBorderColor: 'transparent', pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` NAV: ${fmt(c.raw)}` } } },
+          scales: {
+            x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+            y: { ticks: { callback: v => '$' + v.toFixed(0), font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } }
+          }
+        }
+      });
     }
 
-    // Country bars
-    const cb=document.getElementById('cntB');
-    if(cb) cb.innerHTML=f.cnt.map(c=>`<div class="bar"><div class="bar-h"><span>${c.l}</span><strong>${c.p}%</strong></div><div class="bar-tr"><div class="bar-fl" style="width:${c.p}%;background:${meta.c}"></div></div></div>`).join('');
+    // Pie chart
+    const pieCtx = document.getElementById(`pieChart_${activeFund}`);
+    if (pieCtx) {
+      charts['pie'] = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+          labels: f.allocation.map(a => a.l),
+          datasets: [{ data: f.allocation.map(a => a.p), backgroundColor: pal, borderWidth: 2, borderColor: 'transparent' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw}%` } } }, cutout: '60%' }
+      });
+    }
 
-    // Industry bars
-    const ib=document.getElementById('indB');
-    if(ib&&f.ind) ib.innerHTML=f.ind.map(i=>`<div class="bar"><div class="bar-h"><span>${i.l}</span><strong>${i.p}%</strong></div><div class="bar-tr"><div class="bar-fl" style="width:${i.p}%;background:${meta.c}88"></div></div></div>`).join('');
+    // Annual returns bar
+    const barCtx = document.getElementById(`barChart_${activeFund}`);
+    if (barCtx) {
+      const vals = f.annualReturns.map(r => r.v);
+      charts['bar'] = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: f.annualReturns.map(r => r.y),
+          datasets: [{ label: 'Retorno %', data: vals, backgroundColor: vals.map(v => v >= 0 ? meta.color + 'CC' : '#E24B4ACC'), borderRadius: 3, borderSkipped: false }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { size: 11 }, autoSkip: false }, grid: { display: false } },
+            y: { ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } }
+          }
+        }
+      });
+    }
 
     // Holdings horizontal bar
-    const hc=document.getElementById('hldCh');
-    if(hc) CH.hldCh=new Chart(hc,{type:'bar',data:{labels:f.hld.map(h=>h.s),datasets:[{data:f.hld.map(h=>h.p),backgroundColor:HCOL.slice(0,f.hld.length),borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(2)}% · ${fmtM(f.aum*c.raw/100)}`}}},scales:{x:{ticks:{callback:v=>v+'%',font:{size:10},color:'rgba(122,136,152,.8)'},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{font:{size:11},color:'rgba(200,200,200,.75)'},grid:{display:false}}}}});
-
-    // AUM trend bar
-    if(navHist.length>1){const auc=document.getElementById('aumCh');if(auc) CH.aumCh=new Chart(auc,{type:'bar',data:{labels:navHist.map(p=>p.lbl),datasets:[{data:navHist.map(p=>p.aum/1e6),backgroundColor:navHist.map((_,i)=>i===navHist.length-1?meta.c+'BB':meta.c+'44'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` AUM: $${c.raw.toFixed(2)}M`}}},scales:{x:{ticks:{font:{size:11},color:'rgba(122,136,152,.8)'},grid:{display:false}},y:{ticks:{callback:v=>'$'+v.toFixed(1)+'M',font:{size:10},color:'rgba(122,136,152,.8)'},grid:{color:'rgba(255,255,255,.03)'}}}}})}
-  },80);
+    const holdCtx = document.getElementById(`holdChart_${activeFund}`);
+    if (holdCtx) {
+      charts['hold'] = new Chart(holdCtx, {
+        type: 'bar',
+        data: {
+          labels: f.holdings.map(h => h.s),
+          datasets: [{ label: '%', data: f.holdings.map(h => h.p), backgroundColor: holdingColors.slice(0, f.holdings.length), borderRadius: 3 }]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw.toFixed(2)}% · ${fmtM(f.aum * c.raw / 100)}` } } },
+          scales: {
+            x: { ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+            y: { ticks: { font: { size: 11 }, autoSkip: false }, grid: { display: false } }
+          }
+        }
+      });
+    }
+  }, 100);
 }
 
-// ═══════════════════════════════════════════
-// SETTERS
-// ═══════════════════════════════════════════
-function setMonth(m){
-  M=m;killA();
-  renderSum();renderPills();renderGrid();renderTabs();renderDetail();
-}
-
-function setFund(f){
-  F=f;
-  document.querySelectorAll('.fc').forEach(el=>el.classList.toggle('on',el.dataset.id===f));
-  document.querySelectorAll('.ft').forEach(el=>el.classList.toggle('on',el.dataset.fund===f));
+// ─── SETTERS ────────────────────────────────────────────
+function setMonth(m) {
+  activeMonth = m;
+  renderMonthPills();
+  renderOverview();
+  renderTabs();
   renderDetail();
 }
 
-// ═══════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════
-renderSum();renderPills();renderGrid();renderTabs();renderDetail();
+function setFund(id) {
+  activeFund = id;
+  renderTabs();
+  renderDetail();
+}
+
+// ─── INIT ───────────────────────────────────────────────
+renderMonthPills();
+renderOverview();
+renderTabs();
+renderDetail();
 </script>
-</body>
-</html>
