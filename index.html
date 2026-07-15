@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fund Tracker — Geneva Asset Management</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-sans); }
+    .dash { padding: 1.5rem 1rem; }
+    .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+    .fund-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab-btn { padding: 6px 14px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+    .tab-btn.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+    .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+    .metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+    .metric-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+    .metric-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+    .pos-green { color: #1D9E75; }
+    .pos-red { color: #E24B4A; }
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5rem; }
+    .chart-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem; }
+    .chart-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px; }
+    .legend-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+    .leg-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+    .holdings-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .holdings-table th { text-align: left; padding: 6px 8px; color: var(--color-text-secondary); font-weight: 400; font-size: 11px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+    .holdings-table td { padding: 7px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+    .holdings-table tr:last-child td { border-bottom: none; }
+    .ticker { font-family: var(--font-mono); font-size: 12px; background: var(--color-background-secondary); padding: 2px 5px; border-radius: 3px; }
+    .overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+    .fund-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; cursor: pointer; transition: border-color 0.15s; }
+    .fund-card:hover { border-color: var(--color-border-primary); }
+    .fund-card-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .fund-card-aum { font-size: 20px; font-weight: 500; margin-bottom: 2px; }
+    .fund-card-meta { font-size: 12px; color: var(--color-text-secondary); }
+    .bar-wrap { margin-bottom: 8px; }
+    .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 3px; }
+    .bar-track { height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; }
+    .month-pills { display: flex; gap: 6px; margin-bottom: 1.5rem; }
+    .month-pill { padding: 5px 14px; font-size: 12px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+    .month-pill.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+    .chg-badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+    .chg-up { background: rgba(29,158,117,0.12); color: #1D9E75; }
+    .chg-dn { background: rgba(226,75,74,0.12); color: #E24B4A; }
+    .chg-new { background: rgba(100,130,255,0.12); color: #8898FF; }
+    .loading { text-align: center; padding: 2rem; color: var(--color-text-secondary); }
+    .error { background: rgba(226,75,74,0.12); border: 1px solid #E24B4A; color: #E24B4A; padding: 1rem; border-radius: 8px; margin: 1rem; }
+    @media (max-width: 500px) { .charts-row { grid-template-columns: 1fr; } .overview-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="dash">
+  <h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Fund tracker dashboard showing Encina Fund, GenAsset U.S. Income Fund, and Tagua Fund</h2>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;">
+    <div>
+      <p style="font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px;">Fund tracker</p>
+      <p style="font-size: 13px; color: var(--color-text-secondary);">Geneva Asset Management</p>
+    </div>
+    <div class="month-pills" id="monthPills"></div>
+  </div>
+  <p class="section-title">Portfolio overview</p>
+  <div class="overview-grid" id="overviewGrid"></div>
+  <div class="fund-tabs" id="fundTabs"></div>
+  <div id="fundDetail"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ─── METADATA (Static fund definitions) ──────────────────
+const META = {
+  encina:   { id:'encina',   name:'Encina Fund',               ticker:'ENCINA',   color:'#1D9E75', navInitial:100,  inception:'2022-03-01', expenseRatio:'1.00%' },
+  gusifund: { id:'gusifund', name:'GenAsset U.S. Income Fund', ticker:'GUSIFUND', color:'#378ADD', navInitial:100,  inception:'2026-02-25', expenseRatio:'0.50%', div:true },
+  tagua:    { id:'tagua',    name:'Tagua Fund',                 ticker:'TAGUA',    color:'#7F77DD', navInitial:1000, inception:'2010-08-16', expenseRatio:'Equities 1.0625% / Others 0.3625%' }
+};
+
+// ─── STATE ──────────────────────────────────────────────
+let DB = null;
+let TIMELINE = null;
+let activeMonth = null;
+let activeFund = 'encina';
+let charts = {};
+
+// ─── DATA LOADING ────────────────────────────────────────
+async function loadData() {
+  try {
+    const cacheBuster = Math.floor(Date.now() / 60000); // Cache bust every minute
+    const response = await fetch(`data.json?v=${cacheBuster}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const data = await response.json();
+    TIMELINE = data.timeline;
+    DB = data.months;
+    activeMonth = TIMELINE[TIMELINE.length - 1]; // Start with latest month
+    
+    initializeApp();
+  } catch (error) {
+    console.error('Failed to load data:', error);
+    document.getElementById('fundDetail').innerHTML = `
+      <div class="error">
+        <strong>Error loading fund data</strong><br>
+        Could not fetch data.json. Please check the file exists and try refreshing the page.
+      </div>
+    `;
+  }
+}
+
+// ─── HELPERS ────────────────────────────────────────────
+const fmt  = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+const fmtM = n => '$' + (n / 1e6).toFixed(2) + 'M';
+const pct  = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const clr  = n => n >= 0 ? 'pos-green' : 'pos-red';
+
+function destroyCharts() {
+  Object.values(charts).forEach(c => { try { c.destroy(); } catch(e){} });
+  charts = {};
+}
+
+const piePalettes = {
+  encina:   ['#1D9E75','#9FE1CB'],
+  gusifund: ['#378ADD','#85B7EB','#B5D4F4'],
+  tagua:    ['#7F77DD','#CECBF6'],
+};
+
+const holdingColors = [
+  '#1D9E75','#378ADD','#7F77DD','#D85A30','#BA7517',
+  '#E24B4A','#D4537E','#639922','#0F6E56','#185FA5','#888780'
+];
+
+function getPrevData(fundId) {
+  const idx = TIMELINE.indexOf(activeMonth);
+  if (idx <= 0) return null;
+  return DB[TIMELINE[idx - 1]][fundId];
+}
+
+function changeBadge(h, prevHoldings) {
+  if (!prevHoldings) return '';
+  if (h.pp === null || h.pp === undefined) return '<span class="chg-badge chg-new">NEW</span>';
+  const d = h.p - h.pp;
+  if (Math.abs(d) < 0.05) return '';
+  return `<span class="chg-badge ${d > 0 ? 'chg-up' : 'chg-dn'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(2)}%</span>`;
+}
+
+// ─── MONTH PILLS ────────────────────────────────────────
+function renderMonthPills() {
+  const el = document.getElementById('monthPills');
+  el.innerHTML = TIMELINE.map(m =>
+    `<button class="month-pill ${m === activeMonth ? 'active' : ''}" onclick="setMonth('${m}')">${DB[m].short}</button>`
+  ).join('');
+}
+
+// ─── OVERVIEW GRID ──────────────────────────────────────
+function renderOverview() {
+  const snap = DB[activeMonth];
+  const g = document.getElementById('overviewGrid');
+  g.innerHTML = Object.values(META).map(meta => {
+    const f = snap[meta.id];
+    return `
+      <div class="fund-card" onclick="setFund('${meta.id}')">
+        <div class="fund-card-name" style="color:${meta.color}">${meta.name}</div>
+        <div class="fund-card-aum">${fmtM(f.aum)}</div>
+        <div class="fund-card-meta">AUM · ${f.shareholders} accionistas</div>
+        <div style="margin-top:10px; display:flex; gap:16px;">
+          <div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">NAV</div>
+            <div style="font-size:15px;font-weight:500">${fmt(f.nav)}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">MTD</div>
+            <div style="font-size:15px;font-weight:500" class="${clr(f.returnMtd)}">${pct(f.returnMtd)}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">Total</div>
+            <div style="font-size:15px;font-weight:500" class="${clr(f.returnTotal)}">${pct(f.returnTotal)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── FUND TABS ──────────────────────────────────────────
+function renderTabs() {
+  const t = document.getElementById('fundTabs');
+  t.innerHTML = Object.values(META).map(meta =>
+    `<button class="tab-btn ${meta.id === activeFund ? 'active' : ''}" onclick="setFund('${meta.id}')">${meta.name}</button>`
+  ).join('');
+}
+
+// ─── FUND DETAIL ────────────────────────────────────────
+function renderDetail() {
+  destroyCharts();
+  const meta = META[activeFund];
+  const f    = DB[activeMonth][activeFund];
+  const prev = getPrevData(activeFund);
+  const showChg = prev !== null;
+  const totalHoldingPct = f.holdings.reduce((s, h) => s + h.p, 0);
+  
+  const navHist = TIMELINE.slice(0, TIMELINE.indexOf(activeMonth) + 1).map(t => ({
+    short: DB[t].short, label: DB[t].label,
+    nav: DB[t][activeFund].nav, aum: DB[t][activeFund].aum
+  }));
+  
+  const prevHoldings = prev ? prev.holdings : null;
+  const d = document.getElementById('fundDetail');
+  
+  d.innerHTML = `
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">AUM</div><div class="metric-value">${fmtM(f.aum)}</div>
+        ${prev ? `<div class="metric-sub ${clr(f.aum - prev.aum)}">${f.aum >= prev.aum ? '▲' : '▼'} ${fmtM(Math.abs(f.aum - prev.aum))} vs ${DB[TIMELINE[TIMELINE.indexOf(activeMonth)-1]].short}</div>` : ''}
+      </div>
+      <div class="metric"><div class="metric-label">NAV por acción</div><div class="metric-value">${fmt(f.nav)}</div>
+        <div class="metric-sub">Inicial ${fmt(meta.navInitial)}</div>
+      </div>
+      <div class="metric"><div class="metric-label">MTD</div><div class="metric-value ${clr(f.returnMtd)}">${pct(f.returnMtd)}</div></div>
+      <div class="metric"><div class="metric-label">YTD</div><div class="metric-value ${clr(f.returnYtd)}">${pct(f.returnYtd)}</div></div>
+      <div class="metric"><div class="metric-label">Retorno total</div><div class="metric-value ${clr(f.returnTotal)}">${pct(f.returnTotal)}</div></div>
+      ${f.returnAvg
+        ? `<div class="metric"><div class="metric-label">Promedio histórico</div><div class="metric-value">${f.returnAvg.toFixed(2)}%</div><div class="metric-sub">${f.years} años</div></div>`
+        : `<div class="metric"><div class="metric-label">Tiempo</div><div class="metric-value">${f.years} años</div></div>`}
+    </div>
+    
+    ${navHist.length > 1 ? `
+    <div class="chart-card" style="margin-bottom:1.5rem;">
+      <div class="chart-title">Evolución NAV</div>
+      <div style="display:flex;gap:20px;margin-bottom:12px;">
+        ${navHist.map((p, i) => `
+          <div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">${p.short}</div>
+            <div style="font-size:15px;font-weight:500;color:${i===navHist.length-1?meta.color:'var(--color-text-primary)'}">${fmt(p.nav)}</div>
+            ${i > 0 ? `<div style="font-size:11px;" class="${clr(p.nav - navHist[i-1].nav)}">${p.nav >= navHist[i-1].nav ? '▲' : '▼'} ${fmt(Math.abs(p.nav - navHist[i-1].nav))}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+      <div style="position:relative;height:130px;"><canvas id="navTrendChart"></canvas></div>
+    </div>` : ''}
+    
+    ${f.dividendYield ? `
+    <div class="chart-card" style="margin-bottom:1rem;">
+      <div class="chart-title">Dividendos 2026</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
+        <div class="metric"><div class="metric-label">Dividend yield</div><div class="metric-value">${f.dividendYield.toFixed(2)}%</div></div>
+        <div class="metric"><div class="metric-label">Por acción (trim.)</div><div class="metric-value">$${f.dividendPerShare.toFixed(2)}</div></div>
+        <div class="metric"><div class="metric-label">Frecuencia</div><div class="metric-value" style="font-size:14px;">Trimestral</div></div>
+      </div>
+      <table class="holdings-table">
+        <thead><tr><th>Fecha</th><th>Monto</th><th>Estado</th></tr></thead>
+        <tbody>
+          ${f.divs.map(dv => `<tr><td>${dv.d}</td><td>$${dv.a.toFixed(2)}</td><td><span style="color:${dv.paid?'#1D9E75':'var(--color-text-secondary)'};font-size:12px;">${dv.paid?'✓ Pagado':'Esperado'}</span></td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : ''}
+    
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Asignación de activos</div>
+        <div class="legend-row" id="pieLegend_${activeFund}"></div>
+        <div style="position:relative;height:180px;"><canvas id="pieChart_${activeFund}"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Retorno neto por año</div>
+        <div style="position:relative;height:200px;"><canvas id="barChart_${activeFund}"></canvas></div>
+      </div>
+    </div>
+    
+    <div class="chart-card" style="margin-bottom:1.5rem;">
+      <div class="chart-title">Posiciones por país</div>
+      ${f.countries.map(c => `
+        <div class="bar-wrap">
+          <div class="bar-label"><span>${c.l}</span><span>${c.p}%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${c.p}%;background:${meta.color};"></div></div>
+        </div>
+      `).join('')}
+    </div>
+    
+    <div class="chart-card" style="margin-bottom:1.5rem;">
+      <div class="chart-title">Mayores posiciones</div>
+      <div style="position:relative;height:${Math.max(240, f.holdings.length * 36 + 60)}px;margin-bottom:8px;"><canvas id="holdChart_${activeFund}"></canvas></div>
+    </div>
+    
+    <div class="chart-card" style="margin-bottom:1.5rem;">
+      <div class="chart-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Detalle de posiciones</span>
+        ${showChg ? '<span style="font-size:11px;font-weight:400;color:var(--color-text-secondary);">▲▼ cambio vs mes anterior</span>' : ''}
+      </div>
+      <table class="holdings-table">
+        <thead><tr>
+          <th>Símbolo</th><th>Nombre</th>
+          <th style="text-align:right">%</th>
+          <th style="text-align:right">Valor USD</th>
+          ${showChg ? '<th></th>' : ''}
+        </tr></thead>
+        <tbody>
+          ${f.holdings.map(h => `
+            <tr>
+              <td><span class="ticker">${h.s}</span></td>
+              <td style="color:var(--color-text-secondary)">${h.n}</td>
+              <td style="text-align:right">${h.p.toFixed(2)}%</td>
+              <td style="text-align:right">${fmtM(f.aum * h.p / 100)}</td>
+              ${showChg ? `<td>${changeBadge(h, prevHoldings)}</td>` : ''}
+            </tr>
+          `).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:500;">
+            <td colspan="2">Total</td>
+            <td style="text-align:right">${totalHoldingPct.toFixed(2)}%</td>
+            <td style="text-align:right">${fmtM(f.aum * totalHoldingPct / 100)}</td>
+            ${showChg ? '<td></td>' : ''}
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    
+    <div style="font-size:11px;color:var(--color-text-secondary);padding-top:4px;">
+      Datos al cierre de ${DB[activeMonth].label.toLowerCase()}. Administrador: Geneva Asset Management, S.A. · Expense ratio: ${meta.expenseRatio}
+    </div>
+  `;
+  
+  const pal = piePalettes[activeFund] || holdingColors;
+  const legend = document.getElementById(`pieLegend_${activeFund}`);
+  if (legend) {
+    legend.innerHTML = f.allocation.map((a, i) =>
+      `<span class="leg-item"><span class="leg-dot" style="background:${pal[i]}"></span>${a.l} ${a.p}%</span>`
+    ).join('');
+  }
+  
+  setTimeout(() => {
+    const ntCtx = document.getElementById('navTrendChart');
+    if (ntCtx) {
+      charts['navTrend'] = new Chart(ntCtx, {
+        type: 'line',
+        data: {
+          labels: navHist.map(p => p.label),
+          datasets: [{
+            data: navHist.map(p => p.nav),
+            borderColor: meta.color,
+            backgroundColor: meta.color + '18',
+            borderWidth: 2, fill: true, tension: 0.4,
+            pointRadius: 5, pointBackgroundColor: meta.color,
+            pointBorderColor: 'transparent', pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` NAV: ${fmt(c.raw)}` } } },
+          scales: {
+            x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+            y: { ticks: { callback: v => '$' + v.toFixed(0), font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } }
+          }
+        }
+      });
+    }
+    
+    const pieCtx = document.getElementById(`pieChart_${activeFund}`);
+    if (pieCtx) {
+      charts['pie'] = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+          labels: f.allocation.map(a => a.l),
+          datasets: [{ data: f.allocation.map(a => a.p), backgroundColor: pal, borderWidth: 2, borderColor: 'transparent' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw}%` } } }, cutout: '60%' }
+      });
+    }
+    
+    const barCtx = document.getElementById(`barChart_${activeFund}`);
+    if (barCtx) {
+      const vals = f.annualReturns.map(r => r.v);
+      charts['bar'] = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: f.annualReturns.map(r => r.y),
+          datasets: [{ label: 'Retorno %', data: vals, backgroundColor: vals.map(v => v >= 0 ? meta.color + 'CC' : '#E24B4ACC'), borderRadius: 3, borderSkipped: false }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { size: 11 }, autoSkip: false }, grid: { display: false } },
+            y: { ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } }
+          }
+        }
+      });
+    }
+    
+    const holdCtx = document.getElementById(`holdChart_${activeFund}`);
+    if (holdCtx) {
+      charts['hold'] = new Chart(holdCtx, {
+        type: 'bar',
+        data: {
+          labels: f.holdings.map(h => h.s),
+          datasets: [{ label: '%', data: f.holdings.map(h => h.p), backgroundColor: holdingColors.slice(0, f.holdings.length), borderRadius: 3 }]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw.toFixed(2)}% · ${fmtM(f.aum * c.raw / 100)}` } } },
+          scales: {
+            x: { ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+            y: { ticks: { font: { size: 11 }, autoSkip: false }, grid: { display: false } }
+          }
+        }
+      });
+    }
+  }, 100);
+}
+
+// ─── SETTERS ────────────────────────────────────────────
+function setMonth(m) {
+  activeMonth = m;
+  renderMonthPills();
+  renderOverview();
+  renderTabs();
+  renderDetail();
+}
+
+function setFund(id) {
+  activeFund = id;
+  renderTabs();
+  renderDetail();
+}
+
+// ─── INIT ───────────────────────────────────────────────
+function initializeApp() {
+  renderMonthPills();
+  renderOverview();
+  renderTabs();
+  renderDetail();
+}
+
+// Start loading data when page loads
+loadData();
+</script>
+</body>
+</html>
